@@ -1,0 +1,252 @@
+﻿def _read_logs(offset: int = 0, limit: int = 50) -> List[Dict[str, Any]]:
+    rows: List[Dict[str, Any]] = []
+    try:
+        with open(LOG_FILE, "r", encoding="utf-8") as f:
+            all_lines = f.readlines()
+        # newest first
+        sliced = list(reversed(all_lines))
+        sliced = sliced[offset: offset + limit]
+        for line in sliced:
+            try:
+                rows.append(json.loads(line))
+            except Exception:
+                continue
+    except FileNotFoundError:
+        return []
+    return rows
+
+
+def _join_emails(*emails: str) -> str:
+    seen = set()
+    out = []
+    for part in emails:
+        if not part:
+            continue
+        # split by comma/semicolon
+        for addr in re.split(r"[;,]", part):
+            a = addr.strip()
+            if not a:
+                continue
+            low = a.lower()
+            if low not in seen:
+                seen.add(low)
+                out.append(a)
+    return ", ".join(out)
+
+
+@app.get("/logs")
+async def get_logs(offset: int = 0, limit: int = 50):
+    return {"items": _read_logs(offset, limit), "offset": offset, "limit": limit}
+
+
+@app.get("/")
+async def logs_page():
+    html = """
+<!doctype html>
+<meta name=viewport content="width=device-width, initial-scale=1">
+<title>Network Error AI - Olay Günlüğü</title>
+<style>
+  :root{
+    --bg:#0b0f19; --panel:#0f1424; --card:#121a2c; --muted:#93a4c8;
+    --accent:#2c7be5; --ok:#17c671; --warn:#ffb400; --err:#e55353; --border:#24304a;
+  }
+  *{box-sizing:border-box}
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:var(--bg);color:#e8eef8}
+  header{background:#0e1528;position:sticky;top:0;z-index:5;border-bottom:1px solid var(--border)}
+  .header-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;max-width:960px;margin:0 auto}
+  .brand{font-weight:600;font-size:18px}
+  .nav{display:flex;gap:14px;align-items:center}
+  .nav-link{color:var(--muted);text-decoration:none;font-size:14px;font-weight:500;transition:color .2s}
+  .nav-link:hover{color:#fff}
+  .nav-link.active{color:#fff}
+  .wrap{padding:16px;max-width:960px;margin:0 auto}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .input{background:var(--panel);border:1px solid var(--border);color:#fff;border-radius:10px;padding:8px 12px;font-size:14px}
+  select.input{padding-right:30px}
+  button{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:9px 14px;font-size:14px;font-weight:500;cursor:pointer;transition:background .2s}
+  button:hover{background:#1f5ec3}
+  .grid{display:grid;gap:12px}
+  @media(min-width:720px){.grid{grid-template-columns:1fr 1fr}}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+  .pill{background:#1a2340;color:#9cc2ff;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600}
+  .pill.ok{background:#0c2b1e;color:#74e0a4}
+  .pill.warn{background:#3a2a00;color:#ffd36a}
+  .pill.err{background:#3a0e0e;color:#ffa0a0}
+  .muted{color:var(--muted)}
+  .mono{font-family:ui-monospace,Consolas,monospace}
+  .title{font-weight:600;margin-bottom:6px;font-size:16px}
+  .footer{opacity:.75;font-size:12px;margin-top:8px;line-height:1.4}
+</style>
+<header>
+  <div class=header-inner>
+    <div class=brand>Network Error AI</div>
+    <nav class=nav>
+      <a href="/" class="nav-link active">Olay Günlüğü</a>
+      <a href="/admin/instructions" class="nav-link">Talimatlar</a>
+    </nav>
+  </div>
+</header>
+<div class=wrap>
+  <div class=toolbar>
+    <select id=type class=input>
+      <option value="">Tüm Tipler</option>
+      <option>received</option>
+      <option>non_incident</option>
+      <option>sent_incident</option>
+      <option>enqueued</option>
+      <option>retry</option>
+      <option>failed</option>
+      <option>watch_refresh</option>
+      <option>instruction_updated</option>
+    </select>
+    <input id=q class=input placeholder="Ara: konu, detay..." style="flex:1 1 220px">
+    <label class=muted style="display:flex;align-items:center;gap:6px">
+      <input type=checkbox id=auto checked> Otomatik yenile
+    </label>
+    <button onclick="refresh()">Yenile</button>
+  </div>
+  <div id=list class=grid></div>
+</div>
+<script>
+let last = [];
+function escapeHtml(value){
+  if(value == null) return "";
+  return String(value)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#39;");
+}
+async function fetchLogs(){
+  const res = await fetch(`/logs?offset=0&limit=200`);
+  if(!res.ok) throw new Error("Kayıtlar yüklenemedi");
+  const data = await res.json();
+  return data.items || [];
+}
+function rel(ts){
+  if(!ts) return "";
+  const diff = Math.floor(Date.now()/1000) - ts;
+  if(diff < 60) return `${diff} sn önce`;
+  const minutes = Math.floor(diff/60);
+  if(minutes < 60) return `${minutes} dk önce`;
+  const hours = Math.floor(minutes/60);
+  if(hours < 24) return `${hours} sa önce`;
+  const days = Math.floor(hours/24);
+  return `${days} gün önce`;
+}
+function pillClass(type){
+  if(type === "sent_incident") return "pill ok";
+  if(type === "non_incident" || type === "retry") return "pill warn";
+  if(type === "failed" || type === "classify_parse_error") return "pill err";
+  return "pill";
+}
+function render(){
+  const list = document.getElementById("list");
+  const typeFilter = document.getElementById("type").value;
+  const query = (document.getElementById("q").value || "").toLowerCase();
+  list.innerHTML = "";
+  for(const item of last){
+    if(typeFilter && item.type !== typeFilter) continue;
+    const searchable = [
+      item.subject,
+      item.details,
+      item.error,
+      item.from,
+      item.to,
+      item.cc,
+      item.threadId
+    ].filter(Boolean).join(" ").toLowerCase();
+    if(query && !searchable.includes(query)) continue;
+    const card = document.createElement("div");
+    card.className = "card";
+    const type = escapeHtml((item.type || "event").toUpperCase());
+    const subject = escapeHtml(item.subject || "");
+    const body = escapeHtml(item.details || item.error || "");
+    const from = item.from ? `Gönderen: <span class="mono">${escapeHtml(item.from)}</span>` : "";
+    const to = item.to ? `&nbsp;&nbsp;To: <span class="mono">${escapeHtml(item.to)}</span>` : "";
+    const cc = item.cc ? `&nbsp;&nbsp;Cc: <span class="mono">${escapeHtml(item.cc)}</span>` : "";
+    const thread = item.threadId ? `&nbsp;&nbsp;#<span class="mono">${escapeHtml(item.threadId)}</span>` : "";
+    card.innerHTML = `
+      <div class="row">
+        <span class="${pillClass(item.type)}">${type}</span>
+        <span class="muted">${rel(item.ts)}</span>
+      </div>
+      <div class="title">${subject}</div>
+      <div class="mono muted">${body}</div>
+      <div class="footer">
+        ${from}${to}${cc}${thread}
+      </div>
+    `;
+    list.appendChild(card);
+  }
+}
+async function refresh(){
+  try{
+    last = await fetchLogs();
+    render();
+  }catch(err){
+    console.error(err);
+  }
+}
+let timer = setInterval(refresh, 6000);
+const auto = document.getElementById("auto");
+auto.addEventListener("change", () => {
+  if(auto.checked){
+    timer = setInterval(refresh, 6000);
+  }else{
+    clearInterval(timer);
+  }
+});
+document.getElementById("q").addEventListener("input", render);
+document.getElementById("type").addEventListener("change", render);
+refresh();
+</script>
+"""
+    return Response(content=html, media_type="text/html; charset=utf-8")
+
+
+@app.get("/admin/instructions")
+async def instructions_page():
+    html = """
+<!doctype html>
+<meta name=viewport content="width=device-width, initial-scale=1">
+<title>Network Error AI - Talimatlar</title>
+<style>
+  :root{
+    --bg:#0b0f19; --panel:#0f1424; --card:#121a2c; --muted:#93a4c8;
+    --accent:#2c7be5; --ok:#17c671; --warn:#ffb400; --err:#e55353; --border:#24304a;
+  }
+  *{box-sizing:border-box}
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:var(--bg);color:#e8eef8}
+  header{background:#0e1528;position:sticky;top:0;z-index:5;border-bottom:1px solid var(--border)}
+  .header-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;max-width:960px;margin:0 auto}
+  .brand{font-weight:600;font-size:18px}
+  .nav{display:flex;gap:14px;align-items:center}
+  .nav-link{color:var(--muted);text-decoration:none;font-size:14px;font-weight:500;transition:color .2s}
+  .nav-link:hover{color:#fff}
+  .nav-link.active{color:#fff}
+  .wrap{padding:16px;max-width:960px;margin:0 auto}
+  .grid{display:grid;gap:16px}
+  @media(min-width:720px){.grid{grid-template-columns:1fr 1fr}}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
+  .card-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .card-title{font-weight:600;font-size:16px}
+  .description{margin:0;font-size:14px;line-height:1.4}
+  .input-area{background:var(--panel);border:1px solid var(--border);border-radius:10px;color:#fff;padding:10px 12px;font-size:13px;min-height:180px;resize:vertical;font-family:ui-monospace,Consolas,monospace}
+  .card-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  button{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:9px 16px;font-size:14px;font-weight:500;cursor:pointer;transition:background .2s}
+  button:hover{background:#1f5ec3}
+  .status{margin-bottom:16px;padding:10px 14px;border-radius:10px;font-size:14px;font-weight:500;display:none}
+  .status.success{display:block;background:rgba(23,198,113,0.15);color:#8ff2bc;border:1px solid rgba(23,198,113,0.35)}
+  .status.error{display:block;background:rgba(229,83,83,0.15);color:#ffaaaa;border:1px solid rgba(229,83,83,0.35)}
+  .muted{color:var(--muted)}
+  .mono{font-family:ui-monospace,Consolas,monospace}
+</style>
+<header>
+  <div class=header-inner>
+    <div class=brand>Network Error AI</div>
+    <nav class=nav>
+      <a href="/" class="nav-link">Olay Günlüğü</a>
+      <a href="/admin/instructions" class="nav-link active">Talimatlar</span>

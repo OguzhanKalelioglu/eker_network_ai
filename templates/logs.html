@@ -1,0 +1,779 @@
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>📊 Network Error AI - Olay Günlüğü</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #0a0e1a;
+            --secondary-bg: #1a1f2e;
+            --card-bg: #1e2530;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #334155;
+            --border-focus: #3b82f6;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--primary-bg) 0%, #0f172a 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: var(--secondary-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stats {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--card-bg);
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .stat-item.success { color: var(--accent-green); }
+        .stat-item.warning { color: var(--accent-orange); }
+        .stat-item.error { color: var(--accent-red); }
+        .stat-item.info { color: var(--accent-blue); }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .toolbar {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .filter-select {
+            padding: 0.5rem 0.75rem;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            min-width: 120px;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 250px;
+            padding: 0.75rem 1rem;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .controls {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .control-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .toggle {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .toggle.active {
+            background: var(--accent-green);
+        }
+
+        .toggle::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            transform: translateX(0);
+        }
+
+        .toggle.active::before {
+            transform: translateX(20px);
+        }
+
+        .btn {
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--secondary-bg);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--card-bg);
+            color: var(--text-primary);
+        }
+
+        .logs-grid {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 1024px) {
+            .logs-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .log-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .log-card:hover {
+            border-color: var(--border-focus);
+            transform: translateY(-2px);
+        }
+
+        .log-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .log-type {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .log-type.received { background: var(--accent-blue); color: white; }
+        .log-type.sent_incident { background: var(--accent-green); color: white; }
+        .log-type.non_incident { background: var(--text-muted); color: white; }
+        .log-type.enqueued { background: var(--accent-purple); color: white; }
+        .log-type.retry { background: var(--accent-orange); color: white; }
+        .log-type.failed { background: var(--accent-red); color: white; }
+        .log-type.watch_refresh { background: var(--text-secondary); color: white; }
+
+        .log-time {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .log-content {
+            margin-bottom: 1rem;
+        }
+
+        .log-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            word-break: break-word;
+        }
+
+        .log-details {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            background: var(--secondary-bg);
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            border: 1px solid var(--border);
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+
+        .log-footer {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            flex-wrap: wrap;
+        }
+
+        .log-footer-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .log-footer-item i {
+            opacity: 0.7;
+        }
+
+        .loading {
+            position: relative;
+            opacity: 0.6;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 24px;
+            height: 24px;
+            margin: -12px 0 0 -12px;
+            border: 2px solid var(--border);
+            border-top: 2px solid var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            z-index: 10;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group {
+                min-width: unset;
+            }
+
+            .controls {
+                justify-content: space-between;
+            }
+
+            .logs-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .log-footer {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--secondary-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>
+                <i class="fas fa-chart-line"></i>
+                Olay Günlüğü
+            </h1>
+            <div class="stats">
+                <div class="stat-item success" id="success-count">
+                    <i class="fas fa-check-circle"></i>
+                    <span>0</span>
+                </div>
+                <div class="stat-item warning" id="warning-count">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>0</span>
+                </div>
+                <div class="stat-item error" id="error-count">
+                    <i class="fas fa-times-circle"></i>
+                    <span>0</span>
+                </div>
+                <div class="stat-item info" id="total-count">
+                    <i class="fas fa-info-circle"></i>
+                    <span>0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="toolbar">
+            <div class="filter-group">
+                <span class="filter-label">
+                    <i class="fas fa-filter"></i>
+                    Tür:
+                </span>
+                <select id="type-filter" class="filter-select">
+                    <option value="">Tümü</option>
+                    <option value="received">Gelen</option>
+                    <option value="non_incident">İlgisiz</option>
+                    <option value="sent_incident">Arıza Bildirimi</option>
+                    <option value="enqueued">Kuyruğa Alındı</option>
+                    <option value="retry">Tekrar Deneme</option>
+                    <option value="failed">Başarısız</option>
+                    <option value="watch_refresh">İzleme Yenileme</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <span class="filter-label">
+                    <i class="fas fa-search"></i>
+                    Ara:
+                </span>
+                <input type="text" id="search-input" class="search-input" placeholder="Konu, detay veya hata mesajı ara...">
+            </div>
+
+            <div class="controls">
+                <div class="control-item">
+                    <label class="toggle" id="auto-refresh-toggle" onclick="toggleAutoRefresh()">
+                        <span class="toggle-handle"></span>
+                    </label>
+                    <span id="auto-refresh-label">Otomatik</span>
+                </div>
+
+                <button class="btn btn-primary" onclick="refreshLogs()">
+                    <i class="fas fa-sync-alt"></i>
+                    Yenile
+                </button>
+
+                <button class="btn btn-secondary" onclick="clearLogs()">
+                    <i class="fas fa-trash"></i>
+                    Temizle
+                </button>
+            </div>
+        </div>
+
+        <div id="logs-container" class="logs-grid">
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h3>Günlük boş</h3>
+                <p>Henüz hiç olay kaydedilmemiş. Yeni e-postalar geldikçe burada görünecek.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let logs = [];
+        let filteredLogs = [];
+        let autoRefreshInterval;
+        let isAutoRefreshEnabled = true;
+        const REFRESH_INTERVAL = 5000; // 5 seconds
+
+        // Type configurations for styling and icons
+        const LOG_TYPES = {
+            'received': { icon: 'fa-envelope', color: 'blue', label: 'Gelen E-posta' },
+            'sent_incident': { icon: 'fa-paper-plane', color: 'green', label: 'Arıza Bildirimi Gönderildi' },
+            'non_incident': { icon: 'fa-info-circle', color: 'gray', label: 'İlgisiz E-posta' },
+            'enqueued': { icon: 'fa-clock', color: 'purple', label: 'İşleme Alındı' },
+            'retry': { icon: 'fa-redo', color: 'orange', label: 'Tekrar Deneme' },
+            'failed': { icon: 'fa-exclamation-triangle', color: 'red', label: 'İşlem Başarısız' },
+            'watch_refresh': { icon: 'fa-eye', color: 'gray', label: 'İzleme Yenilendi' }
+        };
+
+        async function fetchLogs() {
+            try {
+                const response = await fetch('/logs?offset=0&limit=200');
+                const data = await response.json();
+                return data.items || [];
+            } catch (error) {
+                console.error('Failed to fetch logs:', error);
+                return [];
+            }
+        }
+
+        function formatTime(timestamp) {
+            if (!timestamp) return '';
+
+            const now = Math.floor(Date.now() / 1000);
+            const diff = now - timestamp;
+
+            if (diff < 60) return `${diff} sn önce`;
+            if (diff < 3600) return `${Math.floor(diff / 60)} dk önce`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)} sa önce`;
+            return `${Math.floor(diff / 86400)} gün önce`;
+        }
+
+        function getLogTypeConfig(type) {
+            return LOG_TYPES[type] || { icon: 'fa-circle', color: 'gray', label: type };
+        }
+
+        function updateStats() {
+            const stats = {
+                success: 0,
+                warning: 0,
+                error: 0,
+                total: filteredLogs.length
+            };
+
+            filteredLogs.forEach(log => {
+                if (log.type === 'sent_incident') stats.success++;
+                else if (['failed', 'error'].includes(log.type)) stats.error++;
+                else if (['retry', 'non_incident'].includes(log.type)) stats.warning++;
+            });
+
+            document.getElementById('success-count').querySelector('span').textContent = stats.success;
+            document.getElementById('warning-count').querySelector('span').textContent = stats.warning;
+            document.getElementById('error-count').querySelector('span').textContent = stats.error;
+            document.getElementById('total-count').querySelector('span').textContent = stats.total;
+        }
+
+        function renderLogs() {
+            const container = document.getElementById('logs-container');
+            const typeFilter = document.getElementById('type-filter').value;
+            const searchQuery = document.getElementById('search-input').value.toLowerCase();
+
+            // Apply filters
+            filteredLogs = logs.filter(log => {
+                const matchesType = !typeFilter || log.type === typeFilter;
+                const matchesSearch = !searchQuery ||
+                    (log.subject || '').toLowerCase().includes(searchQuery) ||
+                    (log.details || '').toLowerCase().includes(searchQuery) ||
+                    (log.error || '').toLowerCase().includes(searchQuery) ||
+                    (log.from || '').toLowerCase().includes(searchQuery);
+                return matchesType && matchesSearch;
+            });
+
+            if (filteredLogs.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <h3>Sonuç bulunamadı</h3>
+                        <p>Arama kriterlerinize uygun kayıt bulunamadı.</p>
+                    </div>
+                `;
+                updateStats();
+                return;
+            }
+
+            // Sort by timestamp (newest first)
+            filteredLogs.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+
+            container.innerHTML = filteredLogs.map(log => {
+                const config = getLogTypeConfig(log.type);
+                const timeStr = formatTime(log.ts);
+
+                return `
+                    <div class="log-card">
+                        <div class="log-header">
+                            <div class="log-type ${log.type}">
+                                <i class="fas ${config.icon}"></i>
+                                ${config.label}
+                            </div>
+                            <div class="log-time">
+                                <i class="fas fa-clock"></i>
+                                ${timeStr}
+                            </div>
+                        </div>
+
+                        <div class="log-content">
+                            ${log.subject ? `<div class="log-title">${escapeHtml(log.subject)}</div>` : ''}
+                            ${(log.details || log.error) ?
+                                `<div class="log-details">${escapeHtml(log.details || log.error)}</div>` :
+                                ''
+                            }
+                        </div>
+
+                        <div class="log-footer">
+                            ${log.from ? `
+                                <div class="log-footer-item">
+                                    <i class="fas fa-user"></i>
+                                    <span>${escapeHtml(log.from)}</span>
+                                </div>
+                            ` : ''}
+                            ${log.to ? `
+                                <div class="log-footer-item">
+                                    <i class="fas fa-arrow-right"></i>
+                                    <span>${escapeHtml(log.to)}</span>
+                                </div>
+                            ` : ''}
+                            ${log.cc ? `
+                                <div class="log-footer-item">
+                                    <i class="fas fa-users"></i>
+                                    <span>${escapeHtml(log.cc)}</span>
+                                </div>
+                            ` : ''}
+                            ${log.threadId ? `
+                                <div class="log-footer-item">
+                                    <i class="fas fa-hashtag"></i>
+                                    <span>${escapeHtml(log.threadId)}</span>
+                                </div>
+                            ` : ''}
+                            ${log.job_id ? `
+                                <div class="log-footer-item">
+                                    <i class="fas fa-id-badge"></i>
+                                    <span>ID: ${log.job_id}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            updateStats();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function refreshLogs() {
+            const container = document.querySelector('.container');
+            container.classList.add('loading');
+
+            try {
+                logs = await fetchLogs();
+                renderLogs();
+            } catch (error) {
+                console.error('Refresh failed:', error);
+            } finally {
+                container.classList.remove('loading');
+            }
+        }
+
+        function toggleAutoRefresh() {
+            isAutoRefreshEnabled = !isAutoRefreshEnabled;
+            const toggle = document.getElementById('auto-refresh-toggle');
+            const label = document.getElementById('auto-refresh-label');
+
+            toggle.classList.toggle('active', isAutoRefreshEnabled);
+            label.textContent = isAutoRefreshEnabled ? 'Otomatik' : 'Manuel';
+
+            if (isAutoRefreshEnabled) {
+                autoRefreshInterval = setInterval(refreshLogs, REFRESH_INTERVAL);
+            } else {
+                clearInterval(autoRefreshInterval);
+            }
+        }
+
+        function clearLogs() {
+            if (confirm('Tüm görünen kayıtları temizlemek istediğinizden emin misiniz?')) {
+                logs = [];
+                filteredLogs = [];
+                renderLogs();
+            }
+        }
+
+        // Event listeners
+        document.getElementById('type-filter').addEventListener('change', renderLogs);
+        document.getElementById('search-input').addEventListener('input', renderLogs);
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshLogs();
+
+            // Start auto refresh
+            if (isAutoRefreshEnabled) {
+                autoRefreshInterval = setInterval(refreshLogs, REFRESH_INTERVAL);
+            }
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'r' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    refreshLogs();
+                }
+
+                if (e.key === 'f' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    document.getElementById('search-input').focus();
+                }
+
+                if (e.key === 'Escape') {
+                    document.getElementById('search-input').value = '';
+                    renderLogs();
+                }
+            });
+        });
+
+        // Real-time updates indicator
+        let lastUpdate = Date.now();
+        function showUpdateIndicator() {
+            const indicator = document.createElement('div');
+            indicator.innerHTML = '<i class="fas fa-sync-alt"></i> Güncellendi';
+            indicator.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: var(--accent-green);
+                color: white;
+                padding: 0.5rem 1rem;
+                border-radius: 0.5rem;
+                font-size: 0.875rem;
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+            `;
+
+            document.body.appendChild(indicator);
+
+            setTimeout(() => {
+                indicator.style.animation = 'slideOut 0.3s ease forwards';
+                setTimeout(() => indicator.remove(), 300);
+            }, 2000);
+        }
+
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

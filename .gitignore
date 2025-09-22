@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual env
+venv/
+.venv/
+
+# Local data and logs
+events.jsonl
+queue.db
+last_history_id.txt
+replied_message_ids.txt
+replied_thread_ids.txt
+
+# Credentials / tokens (do not commit)
+credentials.json
+token.json
+.env
+.env.*
+
+# Editors/OS
+.DS_Store
+.idea/
+.vscode/
+Thumbs.db
+
