@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>E-posta Ayarları - Network Error AI</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #f8fafc;
+            --secondary-bg: #ffffff;
+            --card-bg: #ffffff;
+            --accent-blue: #0ea5e9;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --border-focus: #0ea5e9;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .app-container { display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--secondary-bg);
+            border-right: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
+            display: flex; flex-direction: column;
+            position: sticky; top: 0; height: 100vh;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+
+        .sidebar-toggle {
+            display: block;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1001;
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem;
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-toggle:hover {
+            background: #0284c7;
+            transform: scale(1.05);
+        }
+
+        /* Desktop'ta sidebar toggle'ı gizle */
+        @media (min-width: 769px) {
+            .sidebar-toggle {
+                display: none;
+            }
+        }
+
+        .sidebar-header { padding: 1.5rem; border-bottom: 1px solid var(--border); }
+
+        .logo {
+            display: flex; align-items: center; gap: 0.75rem;
+            font-size: 1.25rem; font-weight: 700; color: var(--text-primary);
+        }
+
+        .logo-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 1.2rem;
+        }
+
+        .sidebar-nav { flex: 1; padding: 1rem 0; }
+        .nav-item { margin: 0.25rem 1rem; }
+
+        .nav-link {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.75rem 1rem; color: var(--text-secondary); text-decoration: none;
+            border-radius: 8px; font-weight: 500; transition: all 0.2s ease; cursor: pointer;
+        }
+
+        .nav-link:hover { background: var(--card-bg); color: var(--text-primary); }
+        .nav-link.active { background: var(--accent-blue); color: white; }
+
+        .nav-icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
+
+        .sidebar-footer {
+            padding: 1rem; border-top: 1px solid var(--border); background: #f1f5f9;
+        }
+
+        .status-indicator {
+            display: flex; align-items: center; gap: 0.5rem;
+            font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.75rem;
+        }
+
+        .status-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--accent-green); animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        /* Main Content */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+        .main-header {
+            background: var(--secondary-bg); border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: var(--shadow);
+        }
+
+        .page-title {
+            font-size: 1.5rem; font-weight: 600; color: var(--text-primary);
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+
+        .main-body { flex: 1; padding: 2rem; overflow-y: auto; background: var(--primary-bg); }
+
+        /* Cards */
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); transition: all 0.2s ease; }
+        .card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+        .card-header { padding: 1.5rem 1.5rem 1rem; border-bottom: 1px solid var(--border); background: var(--secondary-bg); }
+        .card-title { display: flex; align-items: center; gap: 0.75rem; font-size: 1.125rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem; }
+        .card-description { font-size: 0.875rem; color: var(--text-secondary); }
+        .card-body { padding: 1.5rem; }
+
+        /* Form Elements */
+        .form-section { margin-bottom: 2rem; }
+        .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border); }
+        .section-title { font-size: 1rem; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem; }
+        .add-btn { background: var(--accent-blue); color: white; border: none; border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s ease; }
+        .add-btn:hover { background: #0284c7; transform: translateY(-1px); }
+        .email-list { display: flex; flex-direction: column; gap: 0.75rem; }
+        .email-item { display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: var(--secondary-bg); border: 2px solid var(--border); border-radius: 10px; transition: all 0.2s ease; }
+        .email-item:hover { border-color: var(--accent-blue); background: var(--card-bg); }
+        .email-item:focus-within { border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        .email-input { flex: 1; border: none; background: transparent; padding: 0.5rem 0; font-size: 0.9rem; color: var(--text-primary); outline: none; }
+        .email-input::placeholder { color: var(--text-muted); }
+        .remove-btn { width: 32px; height: 32px; border: none; background: var(--accent-red); color: white; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; font-size: 0.875rem; }
+        .remove-btn:hover { background: #dc2626; transform: scale(1.1); }
+
+        /* Preview Panel */
+        .preview-panel { background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); color: white; border-radius: 12px; padding: 1.5rem; margin-top: 1rem; }
+        .preview-title { font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .preview-item { display: flex; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .preview-label { font-weight: 600; min-width: 60px; opacity: 0.9; }
+        .preview-value { opacity: 0.8; word-break: break-all; }
+
+        /* Action Bar */
+        .action-bar { display: flex; gap: 1rem; justify-content: flex-end; padding: 1.5rem 0; border-top: 1px solid var(--border); margin-top: 2rem; }
+
+        .btn { padding: 0.75rem 1rem; border: none; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 0.5rem; }
+        .btn-primary { background: var(--accent-blue); color: white; }
+        .btn-primary:hover { background: #2563eb; transform: translateY(-1px); }
+        .btn-secondary { background: var(--secondary-bg); color: var(--text-secondary); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: var(--card-bg); color: var(--text-primary); }
+        .btn-danger { background: var(--accent-red); color: white; }
+        .btn-danger:hover { background: #dc2626; }
+
+        /* Messages */
+        .message { position: fixed; top: 2rem; right: 2rem; padding: 1rem 1.5rem; border-radius: 8px; font-weight: 500; display: none; align-items: center; gap: 0.5rem; z-index: 1000; box-shadow: var(--shadow-lg); }
+        .message.success { background: var(--accent-green); color: white; }
+        .message.error { background: var(--accent-red); color: white; }
+        .message.info { background: var(--accent-blue); color: white; }
+        .message.warning { background: var(--accent-orange); color: white; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                z-index: 1000;
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .sidebar-toggle {
+                display: block;
+            }
+            
+            .main-content {
+                width: 100%;
+                margin-left: 0;
+            }
+            
+            .main-header { padding: 1rem; padding-left: 4rem; }
+            .main-body { padding: 1rem; }
+            .card-grid { grid-template-columns: 1fr; }
+            .action-bar { flex-direction: column; gap: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Toggle Button (Mobile) -->
+    <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <span>Network AI</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-item">
+                    <a class="nav-link" href="/admin/logs">
+                        <div class="nav-icon"><i class="fas fa-chart-line"></i></div>
+                        <span>Loglar</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a class="nav-link" href="/admin/instructions">
+                        <div class="nav-icon"><i class="fas fa-brain"></i></div>
+                        <span>AI Talimatları</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a class="nav-link active" href="/admin/emails">
+                        <div class="nav-icon"><i class="fas fa-envelope"></i></div>
+                        <span>E-posta Ayarları</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span>Sistem Aktif</span>
+                </div>
+                <a class="nav-link" href="/logout">
+                    <div class="nav-icon"><i class="fas fa-sign-out-alt"></i></div>
+                    <span>Çıkış Yap</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="main-header">
+                <h1 class="page-title">
+                    <i class="fas fa-envelope"></i>
+                    <span>E-posta Ayarları</span>
+                </h1>
+            </div>
+
+            <div class="main-body">
+                <div class="card-grid">
+                    <!-- Email Configuration Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fas fa-paper-plane"></i>
+                                E-posta Konfigürasyonu
+                            </div>
+                            <div class="card-description">
+                                Otomatik e-posta gönderimi için alıcı adreslerini yönetin
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <!-- TO Addresses -->
+                            <div class="form-section">
+                                <div class="section-header">
+                                    <div class="section-title">
+                                        <i class="fas fa-user"></i>
+                                        Ana Alıcılar (TO)
+                                    </div>
+                                    <button class="add-btn" onclick="addEmailField('to')">
+                                        <i class="fas fa-plus"></i>
+                                        Ekle
+                                    </button>
+                                </div>
+                                <div id="to-emails" class="email-list">
+                                    <!-- TO emails will be added here -->
+                                </div>
+                            </div>
+
+                            <!-- CC Addresses -->
+                            <div class="form-section">
+                                <div class="section-header">
+                                    <div class="section-title">
+                                        <i class="fas fa-users"></i>
+                                        Kopya Alıcılar (CC)
+                                    </div>
+                                    <button class="add-btn" onclick="addEmailField('cc')">
+                                        <i class="fas fa-plus"></i>
+                                        Ekle
+                                    </button>
+                                </div>
+                                <div id="cc-emails" class="email-list">
+                                    <!-- CC emails will be added here -->
+                                </div>
+                            </div>
+
+                            <!-- BCC Addresses -->
+                            <div class="form-section">
+                                <div class="section-header">
+                                    <div class="section-title">
+                                        <i class="fas fa-eye-slash"></i>
+                                        Gizli Kopya (BCC)
+                                    </div>
+                                    <button class="add-btn" onclick="addEmailField('bcc')">
+                                        <i class="fas fa-plus"></i>
+                                        Ekle
+                                    </button>
+                                </div>
+                                <div id="bcc-emails" class="email-list">
+                                    <!-- BCC emails will be added here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preview Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fas fa-eye"></i>
+                                E-posta Önizleme
+                            </div>
+                            <div class="card-description">
+                                Gönderilecek e-postaların alıcı bilgilerini görüntüleyin
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="preview-panel">
+                                <div class="preview-title">
+                                    <i class="fas fa-paper-plane"></i>
+                                    Alıcı Özeti
+                                </div>
+                                <div class="preview-item">
+                                    <div class="preview-label">TO:</div>
+                                    <div class="preview-value" id="preview-to">-</div>
+                                </div>
+                                <div class="preview-item">
+                                    <div class="preview-label">CC:</div>
+                                    <div class="preview-value" id="preview-cc">-</div>
+                                </div>
+                                <div class="preview-item">
+                                    <div class="preview-label">BCC:</div>
+                                    <div class="preview-value" id="preview-bcc">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-bar">
+                    <button class="btn btn-danger" onclick="clearAllEmails()">
+                        <i class="fas fa-trash"></i>
+                        Tümünü Temizle
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadDefaultEmails()">
+                        <i class="fas fa-download"></i>
+                        Varsayılanları Yükle
+                    </button>
+                    <button class="btn btn-primary" onclick="saveEmails()">
+                        <i class="fas fa-save"></i>
+                        E-posta Ayarlarını Kaydet
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Container -->
+    <div id="message" class="message"></div>
+
+    <script>
+        let isLoading = false;
+        let emailData = { to: [], cc: [], bcc: [] };
+
+        function addEmailField(type) {
+            const container = document.getElementById(`${type}-emails`);
+            const index = emailData[type].length;
+
+            const emailItem = document.createElement('div');
+            emailItem.className = 'email-item';
+            emailItem.innerHTML = `
+                <input type="email" class="email-input" placeholder="ornek@domain.com" data-type="${type}" data-index="${index}" oninput="updateEmailPreview()">
+                <button type="button" class="remove-btn" onclick="removeEmailField('${type}', ${index})" title="Bu adresi kaldır">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+
+            container.appendChild(emailItem);
+            emailData[type].push('');
+            
+            const newInput = emailItem.querySelector('.email-input');
+            newInput.focus();
+        }
+
+        function removeEmailField(type, index) {
+            if (emailData[type].length <= 1 && type === 'to') {
+                showMessage('En az bir ana alıcı adresi gerekli!', 'warning');
+                return;
+            }
+
+            const container = document.getElementById(`${type}-emails`);
+            const items = container.querySelectorAll('.email-item');
+
+            if (items[index]) {
+                items[index].remove();
+                emailData[type].splice(index, 1);
+
+                const remainingItems = container.querySelectorAll('.email-item');
+                remainingItems.forEach((item, idx) => {
+                    const input = item.querySelector('.email-input');
+                    const button = item.querySelector('.remove-btn');
+                    input.setAttribute('data-index', idx);
+                    button.setAttribute('onclick', `removeEmailField('${type}', ${idx})`);
+                });
+
+                updateEmailPreview();
+            }
+        }
+
+        function updateEmailPreview() {
+            document.querySelectorAll('.email-input').forEach(input => {
+                const type = input.getAttribute('data-type');
+                const index = parseInt(input.getAttribute('data-index'));
+                emailData[type][index] = input.value.trim();
+            });
+
+            const toEmails = emailData.to.filter(email => email.trim());
+            const ccEmails = emailData.cc.filter(email => email.trim());
+            const bccEmails = emailData.bcc.filter(email => email.trim());
+
+            document.getElementById('preview-to').textContent = toEmails.length > 0 ? toEmails.join(', ') : 'Henüz adres eklenmedi';
+            document.getElementById('preview-cc').textContent = ccEmails.length > 0 ? ccEmails.join(', ') : 'Henüz adres eklenmedi';
+            document.getElementById('preview-bcc').textContent = bccEmails.length > 0 ? bccEmails.join(', ') : 'Henüz adres eklenmedi';
+        }
+
+        function clearAllEmails() {
+            if (!confirm('Tüm e-posta adresleri silinecek. Emin misiniz?')) {
+                return;
+            }
+
+            emailData = { to: [], cc: [], bcc: [] };
+            document.getElementById('to-emails').innerHTML = '';
+            document.getElementById('cc-emails').innerHTML = '';
+            document.getElementById('bcc-emails').innerHTML = '';
+
+            addEmailField('to');
+            updateEmailPreview();
+            showMessage('Tüm e-posta adresleri temizlendi', 'info');
+        }
+
+        function loadDefaultEmails() {
+            if (!confirm('Varsayılan e-posta adresleri yüklenecek. Mevcut adresler silinecek. Devam etmek istiyor musunuz?')) {
+                return;
+            }
+
+            emailData = { to: [], cc: [], bcc: [] };
+            document.getElementById('to-emails').innerHTML = '';
+            document.getElementById('cc-emails').innerHTML = '';
+            document.getElementById('bcc-emails').innerHTML = '';
+
+            const defaults = {
+                to: ['onur.karagoz@turkcell.com.tr'],
+                cc: ['berkaykamberoglu@eker.com', 'huseyin.karabuklu@turkcell.com.tr'],
+                bcc: ['oguzhankalelioglu@eker.com']
+            };
+
+            Object.keys(defaults).forEach(type => {
+                defaults[type].forEach(email => {
+                    emailData[type].push(email);
+                    const container = document.getElementById(`${type}-emails`);
+                    const index = emailData[type].length - 1;
+
+                    const emailItem = document.createElement('div');
+                    emailItem.className = 'email-item';
+                    emailItem.innerHTML = `
+                        <input type="email" class="email-input" value="${email}" data-type="${type}" data-index="${index}" oninput="updateEmailPreview()">
+                        <button type="button" class="remove-btn" onclick="removeEmailField('${type}', ${index})" title="Bu adresi kaldır">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    container.appendChild(emailItem);
+                });
+            });
+
+            updateEmailPreview();
+            showMessage('Varsayılan e-posta adresleri yüklendi', 'success');
+        }
+
+        async function loadEmails() {
+            try {
+                const response = await fetch('/admin/instructions/data');
+                const data = await response.json();
+
+                document.getElementById('to-emails').innerHTML = '';
+                document.getElementById('cc-emails').innerHTML = '';
+                document.getElementById('bcc-emails').innerHTML = '';
+
+                const toEmails = Array.isArray(data.settings.to) ? data.settings.to : [];
+                const ccEmails = Array.isArray(data.settings.cc) ? data.settings.cc : [];
+                const bccEmails = Array.isArray(data.settings.bcc) ? data.settings.bcc : [];
+
+                emailData = { to: toEmails, cc: ccEmails, bcc: bccEmails };
+
+                ['to', 'cc', 'bcc'].forEach(type => {
+                    const emails = emailData[type];
+                    emails.forEach((email, index) => {
+                        const container = document.getElementById(`${type}-emails`);
+                        const emailItem = document.createElement('div');
+                        emailItem.className = 'email-item';
+                        emailItem.innerHTML = `
+                            <input type="email" class="email-input" value="${email}" data-type="${type}" data-index="${index}" oninput="updateEmailPreview()">
+                            <button type="button" class="remove-btn" onclick="removeEmailField('${type}', ${index})" title="Bu adresi kaldır">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `;
+                        container.appendChild(emailItem);
+                    });
+                });
+
+                if (toEmails.length === 0) addEmailField('to');
+                if (ccEmails.length === 0) addEmailField('cc');
+                if (bccEmails.length === 0) addEmailField('bcc');
+
+                updateEmailPreview();
+                showMessage('E-posta ayarları yüklendi', 'success');
+
+            } catch (error) {
+                showMessage('E-posta ayarları yüklenirken hata oluştu', 'error');
+                addEmailField('to');
+                addEmailField('cc');
+                addEmailField('bcc');
+            }
+        }
+
+        async function saveEmails() {
+            if (isLoading) return;
+
+            const allEmails = [...emailData.to, ...emailData.cc, ...emailData.bcc];
+            const invalidEmails = allEmails.filter(email => email && !isValidEmail(email));
+
+            if (invalidEmails.length > 0) {
+                showMessage('Geçersiz e-posta adresleri bulundu!', 'error');
+                return;
+            }
+
+            if (emailData.to.filter(email => email.trim()).length === 0) {
+                showMessage('En az bir ana alıcı adresi gerekli!', 'error');
+                return;
+            }
+
+            isLoading = true;
+
+            try {
+                const payload = {
+                    settings: {
+                        to: emailData.to.filter(email => email.trim()),
+                        cc: emailData.cc.filter(email => email.trim()),
+                        bcc: emailData.bcc.filter(email => email.trim()),
+                    },
+                    instructions: {}
+                };
+
+                const response = await fetch('/admin/instructions/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'ok') {
+                    showMessage('E-posta ayarları başarıyla kaydedildi!', 'success');
+                } else {
+                    throw new Error('Kaydetme başarısız');
+                }
+
+            } catch (error) {
+                showMessage('E-posta ayarları kaydedilirken hata oluştu', 'error');
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = `message ${type}`;
+            messageEl.style.display = 'flex';
+            setTimeout(() => { messageEl.style.display = 'none'; }, 4000);
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadEmails();
+        });
+    </script>
+</body>
+</html>

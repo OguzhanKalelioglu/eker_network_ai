@@ -1,0 +1,22 @@
+2025-09-22T13:00:27Z INF Starting tunnel tunnelID=9964a54c-9b75-4b01-9ede-5146305f83e0
+2025-09-22T13:00:27Z INF Cannot determine default configuration path. No file [config.yml config.yaml] in [~/.cloudflared ~/.cloudflare-warp ~/cloudflare-warp /etc/cloudflared /usr/local/etc/cloudflared]
+2025-09-22T13:00:27Z INF Version 2025.9.0 (Checksum ed0b84ce7fae07c61f6f744612a851528663ff6b95eb7dee2d02d8fd61d3ec05)
+2025-09-22T13:00:27Z INF GOOS: darwin, GOVersion: go1.25.1, GoArch: arm64
+2025-09-22T13:00:27Z INF Settings: map[no-autoupdate:true url:http://localhost:8000]
+2025-09-22T13:00:27Z INF cloudflared will not automatically update if installed by a package manager.
+2025-09-22T13:00:27Z INF Generated Connector ID: 83db793e-99f5-4e1a-aa66-60c6237cd9da
+2025-09-22T13:00:27Z INF Initial protocol quic
+2025-09-22T13:00:27Z INF ICMP proxy will use 10.80.2.43 as source for IPv4
+2025-09-22T13:00:27Z INF ICMP proxy will use fe80::a8:17e9:d885:48c3 in zone en0 as source for IPv6
+2025-09-22T13:00:27Z INF Created ICMP proxy listening on 10.80.2.43:0
+2025-09-22T13:00:27Z INF ICMP proxy will use 10.80.2.43 as source for IPv4
+2025-09-22T13:00:27Z INF ICMP proxy will use fe80::a8:17e9:d885:48c3 in zone en0 as source for IPv6
+2025-09-22T13:00:27Z INF Starting metrics server on 127.0.0.1:20241/metrics
+2025-09-22T13:00:27Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=0 event=0 ip=198.41.200.193
+2025-09-22T13:00:28Z INF Registered tunnel connection connIndex=0 connection=4e1f4a85-9ac7-474c-826b-24cd253ebd56 event=0 ip=198.41.200.193 location=fra13 protocol=quic
+2025-09-22T13:00:28Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=1 event=0 ip=198.41.192.77
+2025-09-22T13:00:28Z INF Registered tunnel connection connIndex=1 connection=3000d269-9d8a-4da9-8044-ecff4a38c13f event=0 ip=198.41.192.77 location=fra10 protocol=quic
+2025-09-22T13:00:29Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=2 event=0 ip=198.41.192.27
+2025-09-22T13:00:29Z INF Registered tunnel connection connIndex=2 connection=a27c5828-62d6-4fcd-8a0f-7557585f04d7 event=0 ip=198.41.192.27 location=fra08 protocol=quic
+2025-09-22T13:00:30Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=3 event=0 ip=198.41.200.23
+2025-09-22T13:00:30Z INF Registered tunnel connection connIndex=3 connection=6c35f3e3-b753-45a7-ba0d-b39ad61ccab9 event=0 ip=198.41.200.23 location=fra07 protocol=quic

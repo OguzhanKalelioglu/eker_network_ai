@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Talimatları - Network Error AI</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #f8fafc;
+            --secondary-bg: #ffffff;
+            --card-bg: #ffffff;
+            --accent-blue: #0ea5e9;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --border-focus: #0ea5e9;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .app-container { display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--secondary-bg);
+            border-right: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
+            display: flex; flex-direction: column;
+            position: sticky; top: 0; height: 100vh;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+
+        .sidebar-toggle {
+            display: block;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1001;
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem;
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-toggle:hover {
+            background: #0284c7;
+            transform: scale(1.05);
+        }
+
+        /* Desktop'ta sidebar toggle'ı gizle */
+        @media (min-width: 769px) {
+            .sidebar-toggle {
+                display: none;
+            }
+        }
+
+        .sidebar-header { padding: 1.5rem; border-bottom: 1px solid var(--border); }
+
+        .logo {
+            display: flex; align-items: center; gap: 0.75rem;
+            font-size: 1.25rem; font-weight: 700; color: var(--text-primary);
+        }
+
+        .logo-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 1.2rem;
+        }
+
+        .sidebar-nav { flex: 1; padding: 1rem 0; }
+        .nav-item { margin: 0.25rem 1rem; }
+
+        .nav-link {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.75rem 1rem; color: var(--text-secondary); text-decoration: none;
+            border-radius: 8px; font-weight: 500; transition: all 0.2s ease; cursor: pointer;
+        }
+
+        .nav-link:hover { background: var(--card-bg); color: var(--text-primary); }
+        .nav-link.active { background: var(--accent-blue); color: white; }
+
+        .nav-icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
+
+        .sidebar-footer {
+            padding: 1rem; border-top: 1px solid var(--border); background: #f1f5f9;
+        }
+
+        .status-indicator {
+            display: flex; align-items: center; gap: 0.5rem;
+            font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.75rem;
+        }
+
+        .status-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--accent-green); animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        /* Main Content */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+        .main-header {
+            background: var(--secondary-bg); border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: var(--shadow);
+        }
+
+        .page-title {
+            font-size: 1.5rem; font-weight: 600; color: var(--text-primary);
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+
+        .main-body { flex: 1; padding: 2rem; overflow-y: auto; background: var(--primary-bg); }
+
+        /* Cards */
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); transition: all 0.2s ease; }
+        .card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+        .card-header { padding: 1.5rem 1.5rem 1rem; border-bottom: 1px solid var(--border); background: var(--secondary-bg); }
+        .card-title { display: flex; align-items: center; gap: 0.75rem; font-size: 1.125rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem; }
+        .card-description { font-size: 0.875rem; color: var(--text-secondary); }
+        .card-body { padding: 1.5rem; }
+
+        /* Form Elements */
+        .form-group { margin-bottom: 1.5rem; }
+        .form-label { display: block; font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+        .form-textarea { width: 100%; min-height: 200px; padding: 1rem; border: 2px solid var(--border); border-radius: 10px; background: var(--card-bg); color: var(--text-primary); font-family: 'Monaco', 'Menlo', monospace; font-size: 0.875rem; resize: vertical; transition: all 0.2s ease; }
+        .form-textarea:focus { outline: none; border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+
+        /* Action Bar */
+        .action-bar { display: flex; gap: 1rem; justify-content: flex-end; padding: 1.5rem 0; border-top: 1px solid var(--border); margin-top: 2rem; }
+
+        .btn { padding: 0.75rem 1rem; border: none; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 0.5rem; }
+        .btn-primary { background: var(--accent-blue); color: white; }
+        .btn-primary:hover { background: #2563eb; transform: translateY(-1px); }
+        .btn-secondary { background: var(--secondary-bg); color: var(--text-secondary); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: var(--card-bg); color: var(--text-primary); }
+
+        /* Messages */
+        .message { position: fixed; top: 2rem; right: 2rem; padding: 1rem 1.5rem; border-radius: 8px; font-weight: 500; display: none; align-items: center; gap: 0.5rem; z-index: 1000; box-shadow: var(--shadow-lg); }
+        .message.success { background: var(--accent-green); color: white; }
+        .message.error { background: var(--accent-red); color: white; }
+        .message.info { background: var(--accent-blue); color: white; }
+        .message.warning { background: var(--accent-orange); color: white; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                z-index: 1000;
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .sidebar-toggle {
+                display: block;
+            }
+            
+            .main-content {
+                width: 100%;
+                margin-left: 0;
+            }
+            
+            .main-header { padding: 1rem; padding-left: 4rem; }
+            .main-body { padding: 1rem; }
+            .card-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Toggle Button (Mobile) -->
+    <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <span>Network AI</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-item">
+                    <a class="nav-link" href="/admin/logs">
+                        <div class="nav-icon"><i class="fas fa-chart-line"></i></div>
+                        <span>Loglar</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a class="nav-link active" href="/admin/instructions">
+                        <div class="nav-icon"><i class="fas fa-brain"></i></div>
+                        <span>AI Talimatları</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a class="nav-link" href="/admin/emails">
+                        <div class="nav-icon"><i class="fas fa-envelope"></i></div>
+                        <span>E-posta Ayarları</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span>Sistem Aktif</span>
+                </div>
+                <a class="nav-link" href="/logout">
+                    <div class="nav-icon"><i class="fas fa-sign-out-alt"></i></div>
+                    <span>Çıkış Yap</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="main-header">
+                <h1 class="page-title">
+                    <i class="fas fa-brain"></i>
+                    <span>AI Talimatları</span>
+                </h1>
+            </div>
+
+            <div class="main-body">
+                <div class="card-grid">
+                    <!-- Classification Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fas fa-tags"></i>
+                                E-posta Sınıflandırma
+                            </div>
+                            <div class="card-description">
+                                Gelen e-postaları analiz etmek için AI talimatları
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="classify" class="form-label">
+                                    <i class="fas fa-code"></i>
+                                    Sınıflandırma Prompt'u
+                                </label>
+                                <textarea id="classify" class="form-textarea" placeholder="E-posta sınıflandırma için AI prompt'unuzu buraya yazın..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Generation Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fas fa-reply"></i>
+                                Cevap Üretimi
+                            </div>
+                            <div class="card-description">
+                                Otomatik cevap oluşturmak için AI talimatları
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="generate" class="form-label">
+                                    <i class="fas fa-magic"></i>
+                                    Cevap Üretim Prompt'u
+                                </label>
+                                <textarea id="generate" class="form-textarea" placeholder="Otomatik cevap üretimi için AI prompt'unuzu buraya yazın..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-bar">
+                    <button class="btn btn-secondary" onclick="resetToDefaults()">
+                        <i class="fas fa-undo"></i>
+                        Varsayılanları Yükle
+                    </button>
+                    <button class="btn btn-primary" onclick="saveInstructions()">
+                        <i class="fas fa-save"></i>
+                        Talimatları Kaydet
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Container -->
+    <div id="message" class="message"></div>
+
+    <script>
+        async function loadInstructions() {
+            try {
+                const response = await fetch('/admin/instructions/data');
+                const data = await response.json();
+                document.getElementById('classify').value = data.instructions['instruction.classify'] || '';
+                document.getElementById('generate').value = data.instructions['instruction.generate'] || '';
+                showMessage('Talimatlar yüklendi', 'success');
+            } catch (error) {
+                showMessage('Talimatlar yüklenirken hata oluştu', 'error');
+            }
+        }
+        
+        async function saveInstructions() {
+            try {
+                const payload = {
+                    instructions: {
+                        'instruction.classify': document.getElementById('classify').value.trim(),
+                        'instruction.generate': document.getElementById('generate').value.trim(),
+                    },
+                    settings: {}
+                };
+                const response = await fetch('/admin/instructions/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                if (result.status === 'ok') {
+                    showMessage('Talimatlar başarıyla kaydedildi!', 'success');
+                } else {
+                    throw new Error('Kaydetme başarısız');
+                }
+            } catch (error) {
+                showMessage('Talimatlar kaydedilirken hata oluştu', 'error');
+            }
+        }
+        
+        function resetToDefaults() {
+            if (!confirm('Talimatlar varsayılan değerlere döndürülecek. Emin misiniz?')) return;
+            document.getElementById('classify').value = `Sen bir Network Uzmanısın. Türkiye Türkçesi kullan. Eker Süt Ürünleri isimli firmada çalışıyorsun. Amacın; şirketin sahip olduğu 46 dağıtım deposundan gelen iletileri değerlendirmek ve bunlar arasında internet kesintisi, hız düşüklüğü, bağlantı kopması, paket kaybı, ping değerlerinin çok yüksek olması, MPLS, RadyoLink, VDSL, Metro internet hatlarının çalışmaması gibi durumlarda Superonline ekiplerine iletmektir.
+
+Gelen e-postanın gönderen adresi {from_addr}. Bu adresin '@eker.com' alan adından geldiğini DOĞRULA. Eğer '@eker.com' değilse incident=false yap ve reason'da nedenini belirt.
+
+Çıkarımlar:
+- E-posta internet servis arızasına işaret ediyorsa incident=true; aksi halde false.
+- Örnek anahtar ifadeler: internet kesintisi, hız düşüklüğü, bağlantı kopması, paket kaybı, ping çok yüksek, Metro, MPLS, Ethernet down, RadyoLink, VDSL.
+
+ÇIKTI FORMATI: Aşağıdaki JSON şemasına TAM UYUMLU, TEK SATIR JSON döndür:
+{"incident": true|false, "reason": "kısa açıklama"}
+Sadece JSON üret, başka metin yazma.
+--- E-POSTA METNİ ---
+{email}
+--- BİTTİ ---`;
+            document.getElementById('generate').value = `Aşağıdaki müşteri (Eker Süt Ürünleri) e-postasına dayanarak Superonline/Turkcell destek ekibine gönderilecek ARIZA KAYDI talep e-postasını yaz.
+
+Kurallar:
+- Yazım dili: Türkçe, resmi, net ve kısa.
+- Gönderen: Eker Süt Ürünleri. Kendini Turkcell gibi konumlandırma.
+- Amaç: arıza için kayıt açılması, acil inceleme ve internet hattı kontrolü.
+- Metinden çıkarılabiliyorsa bölge/depo/konum bilgisini belirt; emin değilsen function_call ile 'get_warehouse_info' aracını kullanarak ilgili bölgenin şehir, açık adres ve IP listesini bul ve metne ekle.
+- Eğer bölge/depo bilgisi e-posta metninden çıkarılamıyorsa, gönderenin e-posta adresiyle 'get_user_warehouse_info' fonksiyonunu çağır; dönen DEPOADI/BOLGEKOD bilgisiyle arıza yerini belirterek metne ekle.
+- 3–6 cümle; gereksiz selamlama/imza ekleme.
+- 'Bu E-posta Yapay Zeka tarafından gönderilmiştir.' notunu EKLEME (sistem sonradan ekleyecek).
+
+Girdi özeti: {reason}
+Müşteri e-postası:
+---
+{body}
+---
+E-posta metni:`;
+            showMessage('Varsayılan talimatlar yüklendi. Kaydetmek için "Talimatları Kaydet" butonuna tıklayın.', 'info');
+        }
+        
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = `message ${type}`;
+            messageEl.style.display = 'flex';
+            setTimeout(() => { messageEl.style.display = 'none'; }, 4000);
+        }
+        
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadInstructions();
+        });
+    </script>
+</body>
+</html>
